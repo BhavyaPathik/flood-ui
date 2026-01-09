@@ -2,92 +2,114 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import Sidebar from "./components/sidebar";
 
-const MapView = dynamic(() => import("./components/MapView"), {
-  ssr: false,
-});
+const MapView = dynamic(() => import("./components/MapView"), { ssr: false });
 
-type FloodZone = {
+type WaterLogSpot = {
   id: number;
   name: string;
   lat: number;
   lng: number;
-  riskLevel: "LOW" | "MEDIUM" | "HIGH";
-  waterDepthCm?: number;
-  rainfallMm?: number;
-  alert?: string;
+  severity: "LOW" | "MEDIUM" | "HIGH";
 };
 
 export default function Home() {
-  const [zones, setZones] = useState<FloodZone[]>([]);
-  const [active, setActive] = useState<FloodZone | null>(null);
+  const [spots, setSpots] = useState<WaterLogSpot[]>([]);
+  const [active, setActive] = useState<WaterLogSpot | null>(null);
 
   useEffect(() => {
-    fetch("/data/flood_risk_spots.json")
+    fetch("/data/water_logging_spots.json")
       .then(res => res.json())
-      .then(setZones);
+      .then(setSpots);
   }, []);
-  <div className="bg-blue-500 text-white p-10 text-3xl">
-  Tailwind OK
-  </div>
 
   return (
     <div className="flex h-screen">
-      
-      <aside className="w-64 bg-white border-r p-4 space-y-2">
-        <h1 className="text-xl font-bold mb-4">Flood Hub</h1>
-
-        {["Overview", "Active Alerts", "Flood History", "Safe Zones"].map(tag => (
-          <button
-            key={tag}
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-100 transition"
-          >
-            {tag}
-          </button>
-        ))}
-      </aside>
+      <Sidebar />
 
       <main className="flex-1 p-6 overflow-y-auto">
-        <h2 className="text-2xl font-semibold mb-4">
-          Flood Risk Dashboard
+        <h2 className="text-2xl font-semibold mb-2 text-[var(--primary)]">
+          Water Logging Monitoring Dashboard
         </h2>
 
-        <div className="rounded-xl overflow-hidden shadow bg-white">
-          <MapView spots={zones} onSelect={setActive} />
+        <p className="text-sm text-[var(--muted)] mb-4">
+          Real-time urban water accumulation assessment
+        </p>
+
+        <div className="flex gap-3 mb-4">
+          {["High Severity", "Medium Severity", "Low Severity"].map(tag => (
+            <span
+              key={tag}
+              className="px-3 py-1 text-xs rounded-full border
+                         bg-white text-slate-600"
+            >
+              {tag}
+            </span>
+          ))}
         </div>
 
-        <div className="mt-6 bg-white rounded-xl shadow p-4">
+        <div className="rounded-xl overflow-hidden border bg-white">
+          <MapView spots={spots} onSelect={setActive} />
+        </div>
+
+        <div className="mt-5">
           {!active && (
-            <p className="text-slate-500">
-              Click a flood zone on the map to view details
-            </p>
+            <div className="bg-white border rounded-lg p-4 text-sm text-slate-500">
+              Select a marked zone to view water logging details
+            </div>
           )}
 
           {active && (
-            <div className="space-y-2">
-              <h3 className="text-xl font-semibold">{active.name}</h3>
+            <div className="bg-white border rounded-xl p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">
+                  {active.name}
+                </h3>
 
-              <span
-                className={`inline-block px-3 py-1 rounded-full text-sm font-semibold
-                  ${
-                    active.riskLevel === "HIGH"
-                      ? "bg-red-100 text-red-700"
-                      : active.riskLevel === "MEDIUM"
-                      ? "bg-orange-100 text-orange-700"
-                      : "bg-green-100 text-green-700"
-                  }`}
-              >
-                {active.riskLevel} RISK
-              </span>
+                <span
+                  className={`px-2 py-1 text-xs rounded-full text-white
+                    ${
+                      active.severity === "HIGH"
+                        ? "bg-red-600"
+                        : active.severity === "MEDIUM"
+                        ? "bg-orange-500"
+                        : "bg-green-600"
+                    }`}
+                >
+                  {active.severity}
+                </span>
+              </div>
 
-              <p><b>Water Depth:</b> {active.waterDepthCm ?? "—"} cm</p>
-              <p><b>Rainfall:</b> {active.rainfallMm ?? "—"} mm</p>
+              <div className="grid grid-cols-2 gap-4 text-sm text-slate-700">
+                <div>
+                  <span className="block text-xs text-slate-500">
+                    Average Water Depth
+                  </span>
+                  25–60 cm
+                </div>
 
-              {active.alert && (
-                <p className="text-red-600 font-semibold">
-                  {active.alert}
-                </p>
-              )}
+                <div>
+                  <span className="block text-xs text-slate-500">
+                    Drainage Status
+                  </span>
+                  Partially Blocked
+                </div>
+
+                <div>
+                  <span className="block text-xs text-slate-500">
+                    Report Frequency
+                  </span>
+                  High during monsoon
+                </div>
+
+                <div>
+                  <span className="block text-xs text-slate-500">
+                    Last Incident
+                  </span>
+                  3 days ago
+                </div>
+              </div>
             </div>
           )}
         </div>

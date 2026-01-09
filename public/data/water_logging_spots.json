@@ -4,20 +4,20 @@
     "name": "Connaught Place",
     "lat": 28.6315,
     "lng": 77.2167,
-    "riskLevel": "HIGH"
+    "severity": "HIGH"
   },
   {
     "id": 2,
     "name": "Karol Bagh",
     "lat": 28.6519,
     "lng": 77.1909,
-    "riskLevel": "MEDIUM"
+    "severity": "MEDIUM"
   },
   {
     "id": 3,
-    "name": "Dwarka",
+    "name": "Dwarka Sector 10",
     "lat": 28.5921,
-    "lng": 77.0460,
-    "riskLevel": "LOW"
+    "lng": 77.046,
+    "severity": "LOW"
   }
 ]
