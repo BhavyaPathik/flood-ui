@@ -1,32 +1,38 @@
 "use client";
 
-const items = [
-  "Overview",
-  "Active Waterlogging",
-  "Historical Data",
-  "Drainage Map",
-  "Safe Routes"
-];
+type Tab = "home" | "report" | "history";
 
-export default function Sidebar() {
+export default function Sidebar({
+  activeTab,
+  onChange,
+}: {
+  activeTab: Tab;
+  onChange: (t: Tab) => void;
+}) {
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "home", label: "Home" },
+    { id: "report", label: "Report Waterlogging" },
+    { id: "history", label: "History" },
+  ];
+
   return (
-    <aside className="w-60 bg-white border-r border-[var(--border)] px-5 py-6">
-      <h1 className="text-xl font-semibold text-[var(--primary)] mb-8">
-        Tabs
-      </h1>
-
-      <nav className="space-y-2">
-        {items.map(item => (
+    <aside className="w-64 border-r bg-white p-4">
+      <h2 className="text-lg font-semibold mb-4">Waterlogging Hub</h2>
+      <div className="space-y-1">
+        {tabs.map(t => (
           <button
-            key={item}
-            className="w-full text-left px-3 py-2 rounded-md text-sm
-                       text-slate-700 hover:bg-blue-50 hover:text-[var(--primary)]
-                       transition"
+            key={t.id}
+            onClick={() => onChange(t.id)}
+            className={`w-full text-left px-3 py-2 rounded-md text-sm ${
+              activeTab === t.id
+                ? "bg-blue-100 text-blue-700 font-medium"
+                : "hover:bg-slate-100"
+            }`}
           >
-            {item}
+            {t.label}
           </button>
         ))}
-      </nav>
+      </div>
     </aside>
   );
 }

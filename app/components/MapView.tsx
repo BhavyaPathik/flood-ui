@@ -1,9 +1,20 @@
 "use client";
 
-import { MapContainer, TileLayer, Circle } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Circle } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
-type Spot = {
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+
+type Zone = {
   id: number;
   name: string;
   lat: number;
@@ -12,11 +23,11 @@ type Spot = {
 };
 
 export default function MapView({
-  spots,
+  zones,
   onSelect,
 }: {
-  spots: Spot[];
-  onSelect: (s: Spot) => void;
+  zones: Zone[];
+  onSelect: (z: Zone) => void;
 }) {
   return (
     <MapContainer
@@ -24,32 +35,30 @@ export default function MapView({
       zoom={11}
       style={{ height: "420px", width: "100%" }}
     >
-      <TileLayer
-        attribution="© OpenStreetMap contributors"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-      {spots.map(s => (
-        <Circle
-          key={s.id}
-          center={[s.lat, s.lng]}
-          radius={
-            s.severity === "HIGH" ? 900 :
-            s.severity === "MEDIUM" ? 600 : 350
-          }
-          pathOptions={{
-            color:
-              s.severity === "HIGH"
-                ? "#dc2626"
-                : s.severity === "MEDIUM"
-                ? "#ea580c"
-                : "#16a34a",
-            fillOpacity: 0.45,
-          }}
-          eventHandlers={{
-            click: () => onSelect(s),
-          }}
-        />
+      {zones.map(z => (
+        <Marker
+          key={z.id}
+          position={[z.lat, z.lng]}
+          eventHandlers={{ click: () => onSelect(z) }}
+        >
+          <Circle
+            center={[z.lat, z.lng]}
+            radius={
+              z.severity === "HIGH" ? 900 : z.severity === "MEDIUM" ? 600 : 350
+            }
+            pathOptions={{
+              color:
+                z.severity === "HIGH"
+                  ? "#dc2626"
+                  : z.severity === "MEDIUM"
+                  ? "#f59e0b"
+                  : "#16a34a",
+              fillOpacity: 0.35,
+            }}
+          />
+        </Marker>
       ))}
     </MapContainer>
   );
