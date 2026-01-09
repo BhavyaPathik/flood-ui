@@ -1,47 +1,73 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import MapView from "./components/MapView";
+import dynamic from "next/dynamic";
 
+const MapView = dynamic(() => import("./components/MapView"), {
+  ssr: false,
+});
 
+type FloodSpot = {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+};
 
 type FloodData = {
   location: string;
-  riskLevel: string;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
   waterDepthCm: number;
   rainfallMm: number;
   alert: string;
 };
 
 export default function Home() {
-  const [data, setData] = useState<FloodData | null>(null); 
-
-  const handleSelect = (lat: number, lng: number) => {
-  console.log("Clicked:", lat, lng);
-  };
+  const [spots, setSpots] = useState<FloodSpot[]>([]);
+  const [activeSpot, setActiveSpot] = useState<FloodSpot | null>(null);
+  const [data, setData] = useState<FloodData | null>(null);
 
   useEffect(() => {
+    fetch("/data/flood_spots.json")
+      .then(res => res.json())
+      .then(setSpots);
+
     fetch("/data/flood_riskdata.json")
-      .then((res) => res.json())
-      .then((data) => setData(data));
+      .then(res => res.json())
+      .then(setData);
   }, []);
 
   return (
-    <main className="p-6">
-      <h1 className="text-3xl font-bold">Flood Risk Dashboard</h1>
-      <MapView onSelect={handleSelect} />
+    <main className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="lg:col-span-3">
+        <h1 className="text-3xl font-bold mb-4">
+          Flood Risk Dashboard
+        </h1>
 
-      {!data && <p className="mt-4">Loading data...</p>}
+        <MapView
+          spots={spots}
+          onSelect={setActiveSpot}
+        />
+      </div>
 
-      {data && (
-        <div className="mt-4 space-y-2">
-          <p><b>Location:</b> {data.location}</p>
-          <p><b>Risk Level:</b> {data.riskLevel}</p>
-          <p><b>Water Depth:</b> {data.waterDepthCm} cm</p>
-          <p><b>Rainfall:</b> {data.rainfallMm} mm</p>
-          <p className="text-red-500"><b>Alert:</b> {data.alert}</p>
-        </div>
-      )}
+      <aside className="bg-zinc-900 rounded-lg p-4">
+        {!activeSpot && <p>Select a location on the map</p>}
+
+        {activeSpot && data && (
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold">
+              {activeSpot.name}
+            </h2>
+            <p><b>Risk Level:</b> {activeSpot.riskLevel}</p>
+            <p><b>Water Depth:</b> {data.waterDepthCm} cm</p>
+            <p><b>Rainfall:</b> {data.rainfallMm} mm</p>
+            <p className="text-red-500 font-semibold">
+              {data.alert}
+            </p>
+          </div>
+        )}
+      </aside>
     </main>
   );
 }
