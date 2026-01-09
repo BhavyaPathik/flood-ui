@@ -7,67 +7,91 @@ const MapView = dynamic(() => import("./components/MapView"), {
   ssr: false,
 });
 
-type FloodSpot = {
+type FloodZone = {
   id: number;
   name: string;
   lat: number;
   lng: number;
   riskLevel: "LOW" | "MEDIUM" | "HIGH";
-};
-
-type FloodData = {
-  location: string;
-  riskLevel: "LOW" | "MEDIUM" | "HIGH";
-  waterDepthCm: number;
-  rainfallMm: number;
-  alert: string;
+  waterDepthCm?: number;
+  rainfallMm?: number;
+  alert?: string;
 };
 
 export default function Home() {
-  const [spots, setSpots] = useState<FloodSpot[]>([]);
-  const [activeSpot, setActiveSpot] = useState<FloodSpot | null>(null);
-  const [data, setData] = useState<FloodData | null>(null);
+  const [zones, setZones] = useState<FloodZone[]>([]);
+  const [active, setActive] = useState<FloodZone | null>(null);
 
   useEffect(() => {
-    fetch("/data/flood_spots.json")
+    fetch("/data/flood_risk_spots.json")
       .then(res => res.json())
-      .then(setSpots);
-
-    fetch("/data/flood_riskdata.json")
-      .then(res => res.json())
-      .then(setData);
+      .then(setZones);
   }, []);
+  <div className="bg-blue-500 text-white p-10 text-3xl">
+  Tailwind OK
+  </div>
 
   return (
-    <main className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-      <div className="lg:col-span-3">
-        <h1 className="text-3xl font-bold mb-4">
-          Flood Risk Dashboard
-        </h1>
+    <div className="flex h-screen">
+      
+      <aside className="w-64 bg-white border-r p-4 space-y-2">
+        <h1 className="text-xl font-bold mb-4">Flood Hub</h1>
 
-        <MapView
-          spots={spots}
-          onSelect={setActiveSpot}
-        />
-      </div>
-
-      <aside className="bg-zinc-900 rounded-lg p-4">
-        {!activeSpot && <p>Select a location on the map</p>}
-
-        {activeSpot && data && (
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold">
-              {activeSpot.name}
-            </h2>
-            <p><b>Risk Level:</b> {activeSpot.riskLevel}</p>
-            <p><b>Water Depth:</b> {data.waterDepthCm} cm</p>
-            <p><b>Rainfall:</b> {data.rainfallMm} mm</p>
-            <p className="text-red-500 font-semibold">
-              {data.alert}
-            </p>
-          </div>
-        )}
+        {["Overview", "Active Alerts", "Flood History", "Safe Zones"].map(tag => (
+          <button
+            key={tag}
+            className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-100 transition"
+          >
+            {tag}
+          </button>
+        ))}
       </aside>
-    </main>
+
+      <main className="flex-1 p-6 overflow-y-auto">
+        <h2 className="text-2xl font-semibold mb-4">
+          Flood Risk Dashboard
+        </h2>
+
+        <div className="rounded-xl overflow-hidden shadow bg-white">
+          <MapView spots={zones} onSelect={setActive} />
+        </div>
+
+        <div className="mt-6 bg-white rounded-xl shadow p-4">
+          {!active && (
+            <p className="text-slate-500">
+              Click a flood zone on the map to view details
+            </p>
+          )}
+
+          {active && (
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold">{active.name}</h3>
+
+              <span
+                className={`inline-block px-3 py-1 rounded-full text-sm font-semibold
+                  ${
+                    active.riskLevel === "HIGH"
+                      ? "bg-red-100 text-red-700"
+                      : active.riskLevel === "MEDIUM"
+                      ? "bg-orange-100 text-orange-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+              >
+                {active.riskLevel} RISK
+              </span>
+
+              <p><b>Water Depth:</b> {active.waterDepthCm ?? "—"} cm</p>
+              <p><b>Rainfall:</b> {active.rainfallMm ?? "—"} mm</p>
+
+              {active.alert && (
+                <p className="text-red-600 font-semibold">
+                  {active.alert}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }

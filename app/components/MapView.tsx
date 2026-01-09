@@ -11,9 +11,12 @@ import L from "leaflet";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
 type FloodSpot = {
@@ -24,20 +27,20 @@ type FloodSpot = {
   riskLevel: "LOW" | "MEDIUM" | "HIGH";
 };
 
-type Props = {
+export default function MapView({
+  spots,
+  onSelect,
+}: {
   spots: FloodSpot[];
   onSelect: (spot: FloodSpot) => void;
-};
-
-export default function MapView({ spots, onSelect }: Props) {
+}) {
   return (
     <MapContainer
       center={[28.6139, 77.209]}
       zoom={11}
-      style={{ height: "400px", width: "100%" }}
+      className="h-[420px] rounded-xl"
     >
       <TileLayer
-        attribution="&copy; OpenStreetMap contributors"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
@@ -50,13 +53,19 @@ export default function MapView({ spots, onSelect }: Props) {
           <Circle
             center={[spot.lat, spot.lng]}
             radius={
-              spot.riskLevel === "HIGH" ? 1000 :
-              spot.riskLevel === "MEDIUM" ? 600 : 300
+              spot.riskLevel === "HIGH"
+                ? 1200
+                : spot.riskLevel === "MEDIUM"
+                ? 700
+                : 400
             }
             pathOptions={{
               color:
-                spot.riskLevel === "HIGH" ? "red" :
-                spot.riskLevel === "MEDIUM" ? "orange" : "green",
+                spot.riskLevel === "HIGH"
+                  ? "#dc2626"
+                  : spot.riskLevel === "MEDIUM"
+                  ? "#f59e0b"
+                  : "#16a34a",
               fillOpacity: 0.35,
             }}
           />
